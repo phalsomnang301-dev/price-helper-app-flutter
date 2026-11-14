@@ -13,3 +13,12 @@ String formatMoney(String raw, String currency) {
 
   return isUsd ? '\$$text' : '$text៛';
 }
+
+
+/// "2026-11-12T00:40:23.000000Z" (UTC) → "12/11/2026 07:40" (ម៉ោងទូរស័ព្ទ)
+String formatDateTime(String iso) {
+  final d = DateTime.tryParse(iso)?.toLocal();
+  if (d == null) return '-';
+  String two(int n) => n.toString().padLeft(2, '0');
+  return '${two(d.day)}/${two(d.month)}/${d.year} ${two(d.hour)}:${two(d.minute)}';
+}

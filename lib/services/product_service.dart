@@ -1,13 +1,19 @@
+
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:getdatabacken/models/product_model.dart';
-import 'package:getdatabacken/services/base.dart';
 import 'package:http/http.dart' as http;
+
+import '../models/product_model.dart';
+import 'auth_token.dart';
+import 'base.dart';
 
 class ProductService {
   final _baseUrl = BaseURL.base;
 
+  Map<String, String> get _jsonHeaders => AuthToken.headers(json: true);
+
+  // ---------- អាន ----------
   Future<List<ProductModel>> fetch({
     String search = '',
     int? categoryId,
@@ -17,13 +23,13 @@ class ProductService {
       if (categoryId != null) 'category_id': categoryId.toString(),
     };
 
-    final uri = Uri.parse(
-      "$_baseUrl/api/products",
-    ).replace(queryParameters: params.isEmpty ? null : params);
+    final uri = Uri.parse("$_baseUrl/api/products").replace(
+      queryParameters: params.isEmpty ? null : params,
+    );
 
     try {
       final response = await http
-          .get(uri, headers: {'Accept': 'application/json'})
+          .get(uri, headers: AuthToken.headers())
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final responseBody = utf8.decode(response.bodyBytes);
@@ -35,11 +41,7 @@ class ProductService {
     }
   }
 
-  Map<String, String> get _jsonHeaders => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
-
+  // ---------- បន្ថែម ----------
   Future<ProductModel> create(Map<String, dynamic> data) async {
     final res = await http
         .post(
@@ -51,6 +53,7 @@ class ProductService {
     return _parseSingle(res, 201);
   }
 
+  // ---------- កែ ----------
   Future<ProductModel> update(int id, Map<String, dynamic> data) async {
     final res = await http
         .put(
@@ -62,12 +65,13 @@ class ProductService {
     return _parseSingle(res, 200);
   }
 
+  // ---------- Upload រូប ----------
   Future<void> uploadImage(int id, String path) async {
     final request = http.MultipartRequest(
       'POST',
       Uri.parse("$_baseUrl/api/products/$id/image"),
     );
-    request.headers['Accept'] = 'application/json';
+    request.headers.addAll(AuthToken.headers());
     request.files.add(await http.MultipartFile.fromPath('image', path));
 
     final streamed = await request.send().timeout(const Duration(seconds: 30));
@@ -78,17 +82,19 @@ class ProductService {
     }
   }
 
-    Future<void> delete(int id) async {
+  // ---------- លុប ----------
+  Future<void> delete(int id) async {
     final res = await http
         .delete(
           Uri.parse("$_baseUrl/api/products/$id"),
-          headers: {'Accept': 'application/json'},
+          headers: AuthToken.headers(),
         )
         .timeout(const Duration(seconds: 10));
 
     if (res.statusCode != 200) throw Exception(_extractError(res));
   }
 
+  // ---------- ជំនួយ ----------
   ProductModel _parseSingle(http.Response res, int expected) {
     if (res.statusCode != expected) throw Exception(_extractError(res));
     final body = json.decode(utf8.decode(res.bodyBytes));
@@ -107,87 +113,4 @@ class ProductService {
     } catch (_) {}
     return 'Server Error: ${res.statusCode}';
   }
-
-  // Future<List<ProductModel>> fetch() async {
-  //   final url = "$_baseUrl/api/products";
-
-  //   try {
-  //     final response = await http
-  //         .get(Uri.parse(url))
-  //         .timeout(const Duration(seconds: 10));
-  //     if (response.statusCode == 200) {
-  //       // ប្រើ utf8.decode ការពារដាច់អក្សរខ្មែរ
-  //       final responseBody = utf8.decode(response.bodyBytes);
-  //       final list = await compute(productModelFromJson, responseBody);
-  //       return list;
-  //     }
-  //     throw Exception('Server Error: ${response.statusCode}');
-  //   } catch (e) {
-  //     throw Exception('Failed to load products: $e');
-  //   }
-  // }
-
-  // Future<bool> create(Product item) async {
-  //   final url = "$_baseUrl/api/products";
-
-  //   try {
-  //     final response = await http
-  //         .post(
-  //           Uri.parse(url),
-  //           headers: {
-  //             'Content-Type': 'application/json',
-  //             "Accept": "application/json",
-  //           },
-  //           body: jsonEncode(item.toJson()),
-  //         )
-  //         .timeout(const Duration(seconds: 10));
-  //     if (response.statusCode == 201) {
-  //       debugPrint("response body: ${response.body}");
-  //       return true;
-  //     }
-  //     throw Exception('Server Error: ${response.statusCode}');
-  //   } catch (e) {
-  //     throw Exception('Failed to posting students: $e');
-  //   }
-  // }
-
-  // Future<bool> update(StudentModel item) async {
-  //   final url = "$_baseUrl/api/students/${item.id}";
-
-  //   final body = {"full_name": item.fullName};
-
-  //   try {
-  //     final response = await http
-  //         .put(
-  //           Uri.parse(url),
-  //           headers: {'Content-Type': 'application/json'},
-  //           body: jsonEncode(body),
-  //         )
-  //         .timeout(const Duration(seconds: 10));
-  //     if (response.statusCode == 200) {
-  //       debugPrint("response body: ${response.body}");
-  //       return true;
-  //     }
-  //     throw Exception('Server Error: ${response.statusCode}');
-  //   } catch (e) {
-  //     throw Exception('Failed to updating students: $e');
-  //   }
-  // }
-
-  // Future<bool> delete(int id) async {
-  //   final url = "$_baseUrl/api/students/$id";
-
-  //   try {
-  //     final response = await http
-  //         .delete(Uri.parse(url))
-  //         .timeout(const Duration(seconds: 10));
-  //     if (response.statusCode == 200) {
-  //       debugPrint("response body: ${response.body}");
-  //       return true;
-  //     }
-  //     throw Exception('Server Error: ${response.statusCode}');
-  //   } catch (e) {
-  //     throw Exception('Failed to deleting students: $e');
-  //   }
-  // }
 }

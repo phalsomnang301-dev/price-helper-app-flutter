@@ -40,20 +40,20 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-  title: const Text("Price Helper"),
-  actions: [
-    IconButton.filledTonal(
-      tooltip: 'បន្ថែមទំនិញ',
-      icon: const Icon(Icons.add),
-      onPressed: () {
-        Navigator.of(context, rootNavigator: true).push(
-          MaterialPageRoute(builder: (_) => const ProductFormScreen()),
-        );
-      },
-    ),
-    const SizedBox(width: 12),
-  ],
-),
+        title: const Text("Price Helper"),
+        actions: [
+          IconButton.filledTonal(
+            tooltip: 'បន្ថែមទំនិញ',
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(builder: (_) => const ProductFormScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 12),
+        ],
+      ),
       body: Column(
         children: [
           _buildSearchBar(),
@@ -134,16 +134,35 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
     return Center(
       child: RefreshIndicator(
         onRefresh: () => ref.read(productNotifierProvider.notifier).refresh(),
-    
-        child: productAsync.when(
 
+        child: productAsync.when(
           data: (items) {
             return _buildGridView(items);
           },
           error: (e, s) {
-            debugPrint("Error: ${e.toString()}");
-            debugPrint("TrackTrace: ${s.toString()}");
-            return Text("Error: ${e.toString()}");
+            debugPrint("Error: $e");
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.wifi_off, size: 48),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'ទាញទិន្នន័យមិនបាន\nសូមពិនិត្យអ៊ីនធឺណិត ឬ Server',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () => ref.invalidate(productNotifierProvider),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('ព្យាយាមម្តងទៀត'),
+                    ),
+                  ],
+                ),
+              ),
+            );
           },
           loading: () {
             return _buildSkeleton();
@@ -221,18 +240,18 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
         childAspectRatio: 0.68,
       ),
       itemBuilder: (context, index) {
-  final item = items[index];
-  return ProductCard(
-    item: item,
-    onTap: () {
-      Navigator.of(context, rootNavigator: true).push(
-        MaterialPageRoute(
-          builder: (_) => ProductDetailScreen(item: item),
-        ),
-      );
-    },
-  );
-},
+        final item = items[index];
+        return ProductCard(
+          item: item,
+          onTap: () {
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                builder: (_) => ProductDetailScreen(item: item),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

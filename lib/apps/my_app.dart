@@ -1,27 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:getdatabacken/screens/main_screen.dart';
+import 'package:getdatabacken/screens/auth_gate.dart';
 import '../providers/color_notifer_provider.dart';
 import '../providers/theme_notifier_provider.dart';
-
-// List<Color> colorList = [
-//   Colors.yellow,
-//   Colors.lime,
-//   Colors.green,
-//   Colors.orange,
-//   Colors.deepOrange,
-//   Colors.pinkAccent,
-//   Colors.pink,
-//   Colors.red,
-//   Colors.deepPurple,
-//   Colors.cyanAccent,
-//   Colors.cyan,
-//   Colors.lightBlue,
-//   Colors.blue,
-//   Colors.indigo,
-//   Colors.grey,
-// ];
-
 
 List<Color> colorList = const [
   Color(0xFF2E7D32), // បៃតង (លំនាំដើម)
@@ -32,6 +13,14 @@ List<Color> colorList = const [
   Color(0xFF6A1B9A), // ស្វាយ
   Color(0xFFAD1457), // ផ្កាឈូក
   Color(0xFF37474F), // ប្រផេះខៀវ
+  Color(0xFF4E342E), // ប្រាក់
+  Color(0xFF827717), // លឿងស្រាល
+  Color(0xFF00838F), // ខៀវស្រាល
+  Color(0xFF5D4037), // ប្រាក់ស្រាល
+  Color(0xFF1A237E), // ខៀវខ្ពស់
+  Color(0xFF880E4F), // ផ្កាឈូក
+  Color(0xFF263238), // ប្រផេះខ្មៅ
+
 ];
 
 
@@ -98,7 +87,8 @@ class MyApp extends ConsumerWidget {
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/':
-            return MaterialPageRoute(builder: (context) => MainScreen());
+                return MaterialPageRoute(builder: (context) => const AuthGate());
+
           // case '/detail':
           //   return MaterialPageRoute(
           //     builder: (context) => DetailScreen(),

@@ -38,6 +38,7 @@ class ProductFormScreen extends ConsumerStatefulWidget {
 
 class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _scroll = ScrollController();
   late final TextEditingController _name;
   late final TextEditingController _note;
   final List<_PriceRow> _prices = [];
@@ -70,6 +71,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
   @override
   void dispose() {
+    _scroll.dispose();
     _name.dispose();
     _note.dispose();
     for (final r in _prices) {
@@ -123,8 +125,37 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     );
   }
 
+  // ---------- សម្អាតទម្រង់ (រក្សាតែប្រភេទ) ----------
+  void _resetForNext() {
+    final old = List<_PriceRow>.of(_prices);
+
+    setState(() {
+      _name.clear();
+      _note.clear();
+      _image = null;
+      _prices
+        ..clear()
+        ..add(_PriceRow());
+    });
+
+    // បោះចោល Controller ចាស់ ក្រោយ UI ប្តូររួច (ជៀសវាង "used after dispose")
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final r in old) {
+        r.dispose();
+      }
+    });
+
+    if (_scroll.hasClients) {
+      _scroll.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   // ---------- រក្សាទុក ----------
-  Future<void> _save() async {
+  Future<void> _save({bool addAnother = false}) async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _saving = true);
@@ -151,8 +182,16 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           );
 
       if (!mounted) return;
-      showMessage(context, _isEdit ? 'កែទំនិញជោគជ័យ' : 'បន្ថែមទំនិញជោគជ័យ');
-      Navigator.of(context).pop(true);
+      showMessage(
+        context,
+        _isEdit ? 'កែទំនិញជោគជ័យ' : 'បន្ថែមទំនិញជោគជ័យ: ${data['name']}',
+      );
+
+      if (addAnother && !_isEdit) {
+        _resetForNext();
+      } else {
+        Navigator.of(context).pop(true);
+      }
     } catch (e) {
       if (!mounted) return;
       showMessage(context, e.toString().replaceFirst('Exception: ', ''));
@@ -173,6 +212,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
+          controller: _scroll,
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
             _imagePicker(scheme),
@@ -237,7 +277,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             const SizedBox(height: 16),
 
             FilledButton.icon(
-              onPressed: _saving ? null : _save,
+              onPressed: _saving ? null : () => _save(),
               icon: _saving
                   ? const SizedBox(
                       width: 18,
@@ -250,6 +290,19 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 minimumSize: const Size.fromHeight(52),
               ),
             ),
+
+            // មានតែពេលបន្ថែមថ្មី
+            if (!_isEdit) ...[
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _saving ? null : () => _save(addAnother: true),
+                icon: const Icon(Icons.playlist_add),
+                label: const Text('រក្សាទុក ហើយបន្ថែមទៀត'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                ),
+              ),
+            ],
           ],
         ),
       ),

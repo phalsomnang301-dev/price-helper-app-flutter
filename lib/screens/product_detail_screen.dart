@@ -18,7 +18,6 @@ class ProductDetailScreen extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     final hasNote = item.note != null && item.note!.trim().isNotEmpty;
-  
 
     return Scaffold(
       body: CustomScrollView(
@@ -70,6 +69,7 @@ class ProductDetailScreen extends ConsumerWidget {
                     ),
                   ],
                   const SizedBox(height: 24),
+              
                   Text(
                     'តម្លៃ',
                     style: text.titleMedium?.copyWith(
@@ -83,6 +83,34 @@ class ProductDetailScreen extends ConsumerWidget {
                   else
                     for (final p in item.prices) _priceTile(p, scheme, text),
 
+                const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.update,
+                          size: 16, color: scheme.onSurfaceVariant),
+                      const SizedBox(width: 6),
+                      Text(
+                        'កែតម្លៃចុងក្រោយ: ${_lastPriceUpdate()}',
+                        style: text.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.add_circle_outline,
+                          size: 16, color: scheme.onSurfaceVariant),
+                      const SizedBox(width: 6),
+                      Text(
+                        'បង្កើតនៅ: ${formatDateTime(item.createdAt)}',
+                        style: text.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 24),
 
                   // ---------- ប៊ូតុង (មេរៀន 4.6 និង 4.7) ----------
@@ -91,7 +119,10 @@ class ProductDetailScreen extends ConsumerWidget {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () async {
-                            final ok = await showDeleteDialog(context, itemName: item.name);   // ← បន្ទាត់ថ្មី
+                            final ok = await showDeleteDialog(
+                              context,
+                              itemName: item.name,
+                            ); // ← បន្ទាត់ថ្មី
                             if (ok != true) return;
 
                             try {
@@ -146,6 +177,16 @@ class ProductDetailScreen extends ConsumerWidget {
   }
 
   // ---------- ជួរតម្លៃធំៗ ----------
+
+  // ពេលថ្មីបំផុតក្នុងចំណោមតម្លៃ (ដូច្នេះបង្ហាញពេលកែតម្លៃចុងក្រោយ)
+  String _lastPriceUpdate() {
+    if (item.prices.isEmpty) return formatDateTime(item.updatedAt);
+    final latest = item.prices
+        .map((p) => DateTime.parse(p.updatedAt))
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+    return formatDateTime(latest.toIso8601String());
+  }
+
   Widget _priceTile(Price p, ColorScheme scheme, TextTheme text) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
